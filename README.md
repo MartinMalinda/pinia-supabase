@@ -1,36 +1,36 @@
-Vue Supabase Pinia Integration
+supabase-pinia (experimental, alpha)
 ==============================
 
-This library provides a seamless integration of Supabase with Pinia for Vue applications, enabling efficient and type-safe data management practices. It leverages the power of Supabase for backend operations and Pinia for state management, offering a robust solution for handling complex data structures and relationships.
+Make your Supabase tables reactive.
+Create a pinia store for your supabase table, with CRUD actions that sync local and remote state. 
 
 Features
 --------
 
--   TypeScript Support: Full TypeScript support ensures type safety and enhances development experience with autocompletion and compile-time error checking.
--   Dynamic Data Modeling: Easily model your database schema within your Vue application, allowing for flexible and dynamic data interaction.
--   Comprehensive CRUD Operations: Out-of-the-box support for create, read, update, and delete operations, along with querying.
--   Efficient State Management: Leverages Pinia for reactive state management, ensuring your UI stays in sync with your database state.
--   Relationship Handling: Supports defining and managing relationships between different entities in your database.
+-   *TypeScript Support*: Assuming your supabase client is typed, `SupaStore` should respect and further propagate these types
+-   *CRUD Operations*: create, read, update, and delete operations, along with querying.
+-   *State Management*: Leverages Pinia for reactive state management, ensuring your UI stays in sync with your database state.
+-   *Relationship Handling (WIP)*: Supports defining and managing relationships between different entities in your database.
 
 Installation
 ------------
 
 Before installing, ensure you have a Vue project set up with Pinia and Supabase-js installed.
 
-```
+```bash
 npm install @supabase/supabase-js pinia
 ```
 
 Install the library
 
-```
+```bash
 npm install pinia-supabase
 ```
 
 Usage
 -----
 
-1.  Define Your Store: Use `defineSupaStore` to create a new store tailored to your Supabase table and schema.
+1.  Define Your Store: Use `defineSupaStore` to create a new store tailored to your Supabase table and schema. Each pinia store represents just one table. Your can use these stores directly in components or you can use them in your own pinia stores.
 
 ```ts
 import { defineSupaStore } from 'pinia-supabase';
@@ -67,6 +67,7 @@ const allItems = computed(() => store.peekAll())
 const yourSupaStore = defineSupaStore(supabase, 'yourTableName');
 
 // Adding entities to the store
+// If the entity already exists, it's updated
 yourSupaStore.add([
   // Array of entities to add
 ]);
@@ -131,6 +132,36 @@ console.log(yourSupaStore.peekAll());
 // Subscribe to table changes for realtime updates
 yourSupaStore.subscribe();
 
-// Unsubscribe from table changes
+// Unsubscribe from table changes. Make sure to call this on unmount.
 yourSupaStore.unsubscribe();
 ```
+
+## Store relations (WIP)
+
+```ts
+// Define stores with relations
+const useProjectStore = defineSupaStore(supabase, 'projects');
+const useUserStore = defineSupaStore(supabase, 'users', {
+  projects: useProjectsStore,
+});
+
+// Fetch data with related entities
+const userStore = useUserStore();
+const projectStore = useProjectStore();
+userStore.select('*', { include: ['projects'] }).then((users) => {
+  users.forEach(user => {
+    console.log(user.projects); // projects are present on the user entity, but the TS support for this is lacking so far
+    // projects are added to the project store too
+    console.log(projectStore.peekAll().filter(project => project.user_id === user.id));
+  });
+});
+```
+
+## TODO
+
+- [x] Basic CRUD operations
+- [x] Syncing state to the store
+- [x] Basic TS support
+- [ ] Proper unit tests
+- [ ] Including related entities (almost there)
+- [ ] Proper TS support for related entities

@@ -1,5 +1,5 @@
 {
-  "name": "vite-vue-library-starter",
+  "name": "pinia-supabase",
   "version": "0.0.0",
   "description": "A starter template for building a Vue library with Vite",
   "type": "module",
@@ -45,13 +45,19 @@
   "repository": "github:martinmalinda/vite-vue-library-starter",
   "homepage": "",
   "license": "MIT",
-  "dependencies": {
-    "vitepress": "^1.0.0-rc.32"
-  },
+  "dependencies": {},
   "peerDependencies": {
-    "vue": "^3.3"
+    "pinia": "^2.1.0",
+    "vue": "^3.3",
+    "@supabase/supabase-js": "^2.5.0"
+  },
+  "overrides": {
+    "pinia": {
+      "vue": "^3.3"
+    }
   },
   "devDependencies": {
+    "vitepress": "^1.0.0-rc.32",
     "@testing-library/vue": "^8.0.1",
     "@types/node": "^20.10.4",
     "@vitest/coverage-v8": "^1.0.4",

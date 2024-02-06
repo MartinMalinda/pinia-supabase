@@ -55,8 +55,8 @@ export function defineSupaStore<Database, SchemaName extends string & keyof Data
         const _key = options?.include ? this.getKey(key, options) : key;
         const cacheKey = `_loaded-${key}`;
 
-        if (this[cacheKey]) {
-          return Object.values(this[tableName as any] as Row[]);
+        if ((this as any)[cacheKey]) {
+          return Object.values((this as any)[tableName as any] as Row[]);
         }
 
         const { data, error } = await table().select(_key as '*');
@@ -64,13 +64,13 @@ export function defineSupaStore<Database, SchemaName extends string & keyof Data
           throw error;
         }
 
-        this[cacheKey] = true;
+        (this as any)[cacheKey] = true;
 
-        return this.add(data);
+        return this.add(data as Row[]);
       },
 
       async update(id: Row['id'], data: Partial<Update>) {
-        const { data: items, error } = await table().update(data as any).eq('id', id).select('*');
+        const { data: items, error } = await table().update(data as any).eq('id', id as any).select('*');
 
         if (error) {
           throw error;
@@ -82,13 +82,13 @@ export function defineSupaStore<Database, SchemaName extends string & keyof Data
           throw new Error(`Could not save ${tableName}:${id}. Perhaps a problem with RLS?`);
         }
 
-        Object.assign(this[tableName as any][id], item);
+        Object.assign((this as any)[tableName as any][id], item);
 
-        return this[tableName as any][id] as Row;
+        return (this as any)[tableName as any][id] as Row;
       },
 
       async delete(id: Row['id']) {
-        const { data: items, error } = await table().delete().eq('id', id).select('*');
+        const { data: items, error } = await table().delete().eq('id', id as any).select('*');
 
         if (items?.length === 0) {
           throw new Error(`Could not delete ${tableName}:${id}. Perhaps a problem with RLS?`);
@@ -103,7 +103,7 @@ export function defineSupaStore<Database, SchemaName extends string & keyof Data
           throw error;
         }
 
-        delete this[tableName as any][id];
+        delete (this as any)[tableName as any][id];
 
         return;
       },
@@ -119,7 +119,7 @@ export function defineSupaStore<Database, SchemaName extends string & keyof Data
           throw new Error(`Could not insert into ${tableName}. Perhaps a problem with RLS?`);
         }
 
-        return this.add(items)[0];
+        return this.add(items as Row[])[0];
       },
 
       async save(data: Insert | Update) {
@@ -153,12 +153,12 @@ export function defineSupaStore<Database, SchemaName extends string & keyof Data
       },
 
       async find(id: Row['id'], options?: { reload?: boolean }) {
-        const localEntity = this[tableName as any][id];
+        const localEntity = (this as any)[tableName as any][id];
         if (localEntity && !options?.reload) {
           return localEntity as Row;
         }
 
-        const { data, error } = await table().select('*').eq('id', id);
+        const { data, error } = await table().select('*').eq('id', id as any);
 
         if (error) {
           throw error;
@@ -172,11 +172,11 @@ export function defineSupaStore<Database, SchemaName extends string & keyof Data
       },
 
       peek(id: Row['id']) {
-        return this[tableName as any][id] as Row | undefined;
+        return (this as any)[tableName as any][id] as Row | undefined;
       },
 
       peekAll(): Row[] {
-        return Object.values(this[tableName as any]) as Row[];
+        return Object.values((this as any)[tableName as any]) as Row[];
       }
     }
   });

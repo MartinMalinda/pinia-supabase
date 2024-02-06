@@ -7,10 +7,10 @@ Create a pinia store for your supabase table, with CRUD actions that sync local 
 Features
 --------
 
--   *TypeScript Support*: Assuming your supabase client is typed, `SupaStore` should respect and further propagate these types
--   *CRUD Operations*: create, read, update, and delete operations, along with querying.
--   *State Management*: Leverages Pinia for reactive state management, ensuring your UI stays in sync with your database state.
--   *Relationship Handling (WIP)*: Supports defining and managing relationships between different entities in your database.
+-   **TypeScript Support**: Assuming your supabase client is typed, `SupaStore` should respect and further propagate these types
+-   **CRUD Operations**: create, read, update, and delete operations, along with querying.
+-   **State Management**: Leverages Pinia for reactive state management, ensuring your UI stays in sync with your database state.
+-   **Basic ORM (WIP)**: Supports defining and managing relationships between different entities in your database.
 
 Installation
 ------------

@@ -1,0 +1,75 @@
+{
+  "name": "vite-vue-library-starter",
+  "version": "0.0.0",
+  "description": "A starter template for building a Vue library with Vite",
+  "type": "module",
+  "source": "src/index.ts",
+  "types": "dist/index.d.ts",
+  "main": "./dist/index.umd.cjs",
+  "module": "./dist/index.js",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.umd.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --p ./tsconfig.build.json && vite build",
+    "test": "vitest",
+    "prepublishOnly": "npm run build",
+    "test:coverage": "vitest run --coverage",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "release": "release-it",
+    "docs:preview": "vitepress preview docs"
+  },
+  "keywords": [
+    "vite",
+    "vuejs",
+    "library",
+    "template",
+    "boilerplate"
+  ],
+  "author": "Martin Malinda",
+  "repository": "github:martinmalinda/vite-vue-library-starter",
+  "homepage": "",
+  "license": "MIT",
+  "dependencies": {
+    "vitepress": "^1.0.0-rc.32"
+  },
+  "peerDependencies": {
+    "vue": "^3.3"
+  },
+  "devDependencies": {
+    "@testing-library/vue": "^8.0.1",
+    "@types/node": "^20.10.4",
+    "@vitest/coverage-v8": "^1.0.4",
+    "happy-dom": "^12.10.3",
+    "release-it": "^17.0.1",
+    "typescript": "5.3.3",
+    "vite": "^5.0.9",
+    "vite-plugin-dts": "^3.6.4",
+    "vitest": "^1.0.4",
+    "vue": "^3.3.11",
+    "vuepress": "^1.9.10",
+    "vuepress-plugin-typescript": "^0.3.1"
+  },
+  "release-it": {
+    "github": {
+      "tokenRef": "RELEASE_IT_GITHUB_TOKEN_VC",
+      "release": true
+    }
+  },
+  "sideEffects": false
+}

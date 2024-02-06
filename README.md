@@ -1,37 +1,68 @@
-# 🚦 vue-concurrency
+vite-vue-library-starter
+========================
 
-[![Test Coverage](https://api.codeclimate.com/v1/badges/59a2cde627ebcefcbba4/test_coverage)](https://codeclimate.com/github/MartinMalinda/vue-concurrency/test_coverage) [![gzip size](http://img.badgesize.io/https://unpkg.com/vue-concurrency/dist/vue2/vue-concurrency.modern.js?compression=gzip&label=gzip)](https://unpkg.com/vue-concurrency/dist/index.modern.js) [![npm](https://img.shields.io/npm/v/vue-concurrency)](https://www.npmjs.com/package/vue-concurrency)
+A starter template for building Vue libraries with Vite, designed to simplify the development process with modern tooling.
 
-Inspired by [ember-concurrency](http://ember-concurrency.com/).
+Description
+-----------
 
-A library for encapsulating asynchronous operations and managing concurrency for Vue and Composition API.
+This project is a scaffold for creating Vue.js libraries, leveraging Vite for an efficient development experience. It includes setup for TypeScript, testing with Vitest, and documentation with Vitepress.
 
-vue-concurrency aims to provide a reasonable abstraction for performing asynchronous operations. It reduces boilerplate code, provides reliable derived state and allows new approaches to techniques like throttling, debouncing, polling. Read more about why and how in the docs:
+Features
+--------
 
-- 📖 [Documentation](https://vue-concurrency.netlify.app/)
+-   Vite: Enjoy Vite's fast build and hot module replacement.
+-   TypeScript: Write your library in TypeScript for better development experience.
+-   Testing: Integrated testing setup with Vitest.
+-   Documentation: Ready-to-go Vitepress setup for your library's documentation.
 
-## Features
+Getting Started
+---------------
 
-- Vue 3.3+ (Version === 5.x)✅
-- Vue 2.7 & 3.2 (Version === 4.x)✅
-- Vue 2 + [@vue/composition-api](https://github.com/vuejs/composition-api) (Version < 4.x) ✅
-- **TypeScript support**
-- **Async cancellation** via generator functions and [CAF](https://github.com/getify/CAF)
-- Providing `AbortSignal` to **abort XHR/Fetch requests**
-- **Derived reactive state** to track status of async operations: `isRunning, isIdle, isFinished, isCancelled` and more
-- **Concurrency management**: `drop()`, `restartable()`, `enqueue()` and other tasks
-- **SSR support** (experimental)
+Clone the repository and install dependencies:
 
-## Installation
+```
+git clone https://github.com/MartinMalinda/vite-vue-library-starter.git
+cd vite-vue-library-starter
+npm install
+```
 
-- 📦 [Installation instructions](https://vue-concurrency.netlify.app/installation/)
+## Development
 
-## Demos
+```
+npm run dev
+```
 
-- 🔍 [Autocomplete](https://vue-concurrency.netlify.app/examples/autocomplete/)
-- 🚦 [Concurrency](https://vue-concurrency.netlify.app/managing-concurrency/)
+## Build
 
+```
+npm run build
+```
 
-## License
+## Testing
 
-MIT
+```
+npm run test
+```
+
+## Documentation 
+
+```
+npm run docs:dev
+```
+
+Build
+
+```
+npm run docs:build
+```
+
+Contributing
+------------
+
+Contributions are welcome! Please read our contributing guide for details.
+
+License
+-------
+
+This project is licensed under the MIT License - see the LICENSE file for details.

@@ -13,7 +13,7 @@ export default defineConfig({
       fileName: 'index'
     },
     rollupOptions: {
-      external: ['vue'],
+      external: ['vue', 'pinia', '@supabase/supabase-js'],
       output: {
         // Provide global variables to use in the UMD build
         // for externalized deps

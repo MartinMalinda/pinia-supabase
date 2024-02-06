@@ -1,4 +1,4 @@
-import { SupabaseClient } from "@supabase/supabase-js";
+import { RealtimeChannel, SupabaseClient } from "@supabase/supabase-js";
 import { GenericSchema } from "@supabase/supabase-js/dist/module/lib/types";
 import { StoreDefinition, defineStore } from "pinia";
 
@@ -17,8 +17,10 @@ export function defineSupaStore<Database, SchemaName extends string & keyof Data
   const storeDefinition = defineStore(`supabase-${String(tableName)}`, {
     state: () => {
       const state = {
+        _subscribed: false,
+        _channel: null as null | RealtimeChannel,
         [tableName]: {},
-      } as { [K in TableName]: Record<string, Row> };
+      } as { [K in TableName]: Record<string, Row> } & { _channel: null | RealtimeChannel, _subscribed: boolean };
       return state;
     },
 
@@ -27,7 +29,17 @@ export function defineSupaStore<Database, SchemaName extends string & keyof Data
         const otherStores = relations ? Object.values(relations).map(useStore => useStore()) : [];
 
         return entities.map(entity => {
-          const proxy = (this as any)[tableName][(entity as any).id] = entity;
+          // Get the reactive proxy from the store
+          let proxy = (this as any)[tableName][(entity as any).id];
+
+          // Record already axists in the store, so we just need to update it
+          if (proxy) {
+            Object.assign(proxy, entity);
+          } else {
+            proxy = (this as any)[tableName][(entity as any).id] = entity;
+          }
+
+          // Add relational data
           if (relations) {
             Object.entries(relations).forEach(([relationName, { tableName }], index) => {
               if ((entity as any)[tableName]) {
@@ -42,6 +54,11 @@ export function defineSupaStore<Database, SchemaName extends string & keyof Data
         }) as Row[];
       },
 
+      remove(id: Row['id']) {
+        delete (this as any)[tableName][id];
+      },
+
+      // Generates a select key with optional relational data inclusion
       getKey(key: '*' | undefined, options: SelectOptions) {
         let _key: string = key || '*';
         if (options?.include && relations) {
@@ -51,12 +68,12 @@ export function defineSupaStore<Database, SchemaName extends string & keyof Data
         return _key;
       },
 
-      async select(key: '*' | undefined, options?: SelectOptions): Promise<Row[]> {
+      async select(key: '*' | undefined, options?: SelectOptions) {
         const _key = options?.include ? this.getKey(key, options) : key;
         const cacheKey = `_loaded-${key}`;
 
         if ((this as any)[cacheKey]) {
-          return Object.values((this as any)[tableName as any] as Row[]);
+          return Object.values((this as any)[tableName] as Row[]);
         }
 
         const { data, error } = await table().select(_key as '*');
@@ -82,9 +99,32 @@ export function defineSupaStore<Database, SchemaName extends string & keyof Data
           throw new Error(`Could not save ${tableName}:${id}. Perhaps a problem with RLS?`);
         }
 
-        Object.assign((this as any)[tableName as any][id], item);
+        Object.assign((this as any)[tableName][id], item);
 
-        return (this as any)[tableName as any][id] as Row;
+        return (this as any)[tableName][id] as Row;
+      },
+
+      async updateMany(ids: Row['id'][], data: Partial<Update>) {
+        const { data: items, error } = await table().update(data as any).in('id', ids).select('*');
+
+        if (error) {
+          throw error;
+        }
+
+        if (items?.length !== ids.length) {
+          throw new Error(`Could not update all. Perhaps a problem with RLS?`);
+        }
+
+        let errors = [];
+        items.forEach((item) => {
+          if (item.error) {
+            errors.push(item.error);
+            return;
+          }
+
+          // TODO: double check this, TS seems to be off - is item a string?
+          Object.assign((this as any)[tableName][(item as any).id], item);
+        });
       },
 
       async delete(id: Row['id']) {
@@ -103,9 +143,23 @@ export function defineSupaStore<Database, SchemaName extends string & keyof Data
           throw error;
         }
 
-        delete (this as any)[tableName as any][id];
+        this.remove(id);
 
         return;
+      },
+
+      async deleteMany(ids: Row['id'][]) {
+        const { data: items, error } = await table().delete().in('id', ids).select('*');
+
+        if (items?.length !== ids.length) {
+          throw new Error(`Could not delete all. Perhaps a problem with RLS?`);
+        }
+
+        if (error) {
+          throw error;
+        }
+
+        ids.forEach(id => delete (this as any)[tableName][id]);
       },
 
       async insert(data: Insert) {
@@ -122,6 +176,7 @@ export function defineSupaStore<Database, SchemaName extends string & keyof Data
         return this.add(items as Row[])[0];
       },
 
+      // Handles data saving: creates a new entry if ID is new or not present, otherwise updates the existing entry.
       async save(data: Insert | Update) {
         const _data = { ...data };
         if (relations) {
@@ -153,7 +208,7 @@ export function defineSupaStore<Database, SchemaName extends string & keyof Data
       },
 
       async find(id: Row['id'], options?: { reload?: boolean }) {
-        const localEntity = (this as any)[tableName as any][id];
+        const localEntity = (this as any)[tableName][id];
         if (localEntity && !options?.reload) {
           return localEntity as Row;
         }
@@ -168,15 +223,44 @@ export function defineSupaStore<Database, SchemaName extends string & keyof Data
           throw new Error(`Could not find ${tableName}:${id}`);
         }
 
+        this.add(data as Row[]);
         return data[0];
       },
 
       peek(id: Row['id']) {
-        return (this as any)[tableName as any][id] as Row | undefined;
+        return (this as any)[tableName][id] as Row | undefined;
       },
 
-      peekAll(): Row[] {
-        return Object.values((this as any)[tableName as any]) as Row[];
+      peekAll() {
+        return Object.values((this as any)[tableName]) as Row[];
+      },
+
+      subscribe() {
+
+        if ((this as any)['_subscribed']) {
+          console.warn(`Already subscribed to ${tableName}`);
+          return;
+        }
+
+        (this as any)['_channel'] = supabase.channel(tableName)
+          .on('postgres_changes', { event: '*', schema: 'public', table: tableName }, (payload) => {
+
+            if (payload.eventType === 'DELETE') {
+              delete (this as any)[tableName][payload.old.id];
+            }
+
+            if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+              this.add([payload.new]);
+            }
+          }).subscribe();
+      },
+
+      unsubscribe() {
+        if ((this as any)['_subscribed']) {
+          ((this as any)['_channel'] as RealtimeChannel)?.unsubscribe();
+        } else {
+          console.warn('Not subscribed to', tableName);
+        }
       }
     }
   });

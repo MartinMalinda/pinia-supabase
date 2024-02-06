@@ -8,7 +8,7 @@ Features
 
 -   TypeScript Support: Full TypeScript support ensures type safety and enhances development experience with autocompletion and compile-time error checking.
 -   Dynamic Data Modeling: Easily model your database schema within your Vue application, allowing for flexible and dynamic data interaction.
--   Comprehensive CRUD Operations: Out-of-the-box support for create, read, update, and delete operations, along with advanced querying capabilities.
+-   Comprehensive CRUD Operations: Out-of-the-box support for create, read, update, and delete operations, along with querying.
 -   Efficient State Management: Leverages Pinia for reactive state management, ensuring your UI stays in sync with your database state.
 -   Relationship Handling: Supports defining and managing relationships between different entities in your database.
 
@@ -62,44 +62,75 @@ const allItems = computed(() => store.peekAll())
 
 ### Store Actions
 
-Actions available on stores created by `defineSupaStore`.
+```ts
+// Define your Supabase-Pinia store for a specific table
+const yourSupaStore = defineSupaStore(supabase, 'yourTableName');
 
-#### add(entities: Row[])
+// Adding entities to the store
+yourSupaStore.add([
+  // Array of entities to add
+]);
 
-Adds entities to the store and updates related entities based on defined relations.
+// Selecting data from the table, including related entities if needed
+yourSupaStore.select('*', { include: ['relatedTableName'] }).then((entities) => {
+  console.log(entities);
+});
 
-#### select(key: '*' | undefined, options?: SelectOptions)
+// Updating an entity in the store and the Supabase table
+yourSupaStore.update('entityId', {
+  // Partial update data
+}).then((updatedEntity) => {
+  console.log(updatedEntity);
+});
 
-Selects data from the table, optionally including related entities.
+// Update multiple entities by IDs
+yourSupaStore.updateMany(['entityId1', 'entityId2'], {
+  // Update data
+});
 
-#### update(id: Row['id'], data: Partial<Update>)
+// Deleting an entity from the store and the Supabase table
+yourSupaStore.delete('entityId').then(() => {
+  console.log('Entity deleted');
+});
 
-Updates an entity in the store and the corresponding Supabase table entry.
+// Delete multiple entities by IDs
+yourSupaStore.deleteMany(['entityId1', 'entityId2']);
 
-#### delete(id: Row['id'])
+// Inserting a new entity into the store and the Supabase table
+yourSupaStore.insert({
+  // New entity data
+}).then((newEntity) => {
+  console.log(newEntity);
+});
 
-Deletes an entity from the store and the Supabase table.
+// Saving an entity to the store and the Supabase table, auto deciding between insert and update
+yourSupaStore.save({
+  // Entity data with or without an id
+}).then((savedEntity) => {
+  console.log(savedEntity);
+});
 
-#### insert(data: Insert)
+// Executing a custom query on the Supabase table
+yourSupaStore.query((queryBuilder) => {
+  return queryBuilder.eq('columnName', 'value');
+}, { include: ['relatedTableName'] }).then((queriedEntities) => {
+  console.log(queriedEntities);
+});
 
-Inserts a new entity into the store and the Supabase table.
+// If present, get entity from the local store, if not, fetch it from the server. Reload: true means you want to always fetch from the server and get latest data
+yourSupaStore.find('entityId', { reload: true }).then((foundEntity) => {
+  console.log(foundEntity);
+});
 
-#### save(data: Insert | Update)
+// Peeking at an entity in the store by ID without making request to server
+console.log(yourSupaStore.peek('entityId'));
 
-Saves an entity to the store and the Supabase table, choosing between insert and update operations automatically.
+// Returning all entities currently in the store, without making request to server
+console.log(yourSupaStore.peekAll());
 
-#### query(cb: (filterBuilder: FilterBuilder) => FilterBuilder, options?: SelectOptions)
+// Subscribe to table changes for realtime updates
+yourSupaStore.subscribe();
 
-Executes a custom query on the Supabase table. All entities are added to the store.
-
-#### find(id: Row['id'], options?: { reload?: boolean })
-
-First, the entity is looked up from the store. If not present, it's fetched from Supabase.
-
-#### peek(id: Row['id'])
-
-Returns entity from the store, does not create a request to Supabase
-
-#### peekAll()
-
-Returns all entities currently in the store. No request to Supabase is made.
+// Unsubscribe from table changes
+yourSupaStore.unsubscribe();
+```

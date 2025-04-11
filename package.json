@@ -1,6 +1,6 @@
 {
   "name": "pinia-supabase",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "A starter template for building a Vue library with Vite",
   "type": "module",
   "source": "src/index.ts",
@@ -47,7 +47,7 @@
   "license": "MIT",
   "dependencies": {},
   "peerDependencies": {
-    "pinia": "^2.1.0",
+    "pinia": "^2.1.0 || ^3.0.0",
     "vue": "^3.3",
     "@supabase/supabase-js": "^2.5.0"
   },
